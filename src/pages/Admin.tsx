@@ -8,6 +8,7 @@ import Header from "@/components/layout/Header";
 import TaskForm from "@/components/tasks/TaskForm";
 import AdminHeader from "@/components/admin/AdminHeader";
 import TaskTable from "@/components/admin/TaskTable";
+import { toast } from "sonner";
 
 const Admin = () => {
   const { user, isAuthenticated } = useAuth();
@@ -21,6 +22,15 @@ const Admin = () => {
   if (!isAuthenticated || user?.role !== "teacher") {
     return <Navigate to="/login" />;
   }
+  
+  // Verificação para garantir que existam turmas antes de mostrar o formulário
+  const handleNewTask = () => {
+    if (classes.length === 0) {
+      toast.error("Você precisa cadastrar pelo menos uma turma antes de criar atividades.");
+      return;
+    }
+    setIsFormVisible(true);
+  };
   
   const handleEdit = (task: Task) => {
     setSelectedTask(task);
@@ -46,7 +56,7 @@ const Admin = () => {
       <Header />
       
       <main className="container mx-auto px-4 pt-28 pb-16">
-        <AdminHeader onNewTask={() => setIsFormVisible(true)} />
+        <AdminHeader onNewTask={handleNewTask} />
         
         {isFormVisible && (
           <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">

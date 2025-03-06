@@ -1,9 +1,10 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTasks, Task } from "@/context/TaskContext";
 import { useClasses } from "@/context/ClassContext";
 import { CustomButton } from "@/components/ui/custom-button";
 import { Calendar, X } from "lucide-react";
+import { toast } from "sonner";
 
 interface TaskFormProps {
   task?: Task;
@@ -15,13 +16,23 @@ const TaskForm = ({ task, onClose }: TaskFormProps) => {
   const { classes } = useClasses();
   const [isSubmitting, setIsSubmitting] = useState(false);
   
+  // Verificar se há turmas disponíveis
+  useEffect(() => {
+    if (classes.length === 0) {
+      toast.error("Não há turmas cadastradas. Cadastre uma turma primeiro.");
+      onClose();
+    }
+  }, [classes.length, onClose]);
+  
+  const defaultClassId = classes.length > 0 ? classes[0].id : 0;
+  
   const [formData, setFormData] = useState({
     title: task?.title || "",
     description: task?.description || "",
     subject: task?.subject || "",
     dueDate: task?.dueDate || new Date().toISOString().split("T")[0],
     status: task?.status || "pending",
-    classId: task?.classId || (classes.length > 0 ? classes[0].id : 0),
+    classId: task?.classId || defaultClassId,
   });
   
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -79,18 +90,28 @@ const TaskForm = ({ task, onClose }: TaskFormProps) => {
     
     setIsSubmitting(true);
     
-    // Simulate API call with timeout
-    setTimeout(() => {
+    try {
       if (task) {
         updateTask(task.id, formData);
+        toast.success("Atividade atualizada com sucesso!");
       } else {
         addTask(formData as Omit<Task, "id" | "createdAt">);
+        toast.success("Atividade criada com sucesso!");
       }
       
       setIsSubmitting(false);
       onClose();
-    }, 500);
+    } catch (error) {
+      console.error("Erro ao salvar atividade:", error);
+      toast.error("Ocorreu um erro ao salvar a atividade");
+      setIsSubmitting(false);
+    }
   };
+  
+  // Se não houver turmas, não mostrar o formulário
+  if (classes.length === 0) {
+    return null;
+  }
   
   return (
     <div className="bg-card p-6 rounded-xl shadow-lg border animate-fade-in">
@@ -120,15 +141,11 @@ const TaskForm = ({ task, onClose }: TaskFormProps) => {
               errors.classId ? "border-red-500" : "border-input"
             }`}
           >
-            {classes.length === 0 ? (
-              <option value="">Nenhuma turma cadastrada</option>
-            ) : (
-              classes.map((classItem) => (
-                <option key={classItem.id} value={classItem.id}>
-                  {classItem.name}
-                </option>
-              ))
-            )}
+            {classes.map((classItem) => (
+              <option key={classItem.id} value={classItem.id}>
+                {classItem.name}
+              </option>
+            ))}
           </select>
           {errors.classId && (
             <p className="mt-1 text-xs text-red-500">{errors.classId}</p>

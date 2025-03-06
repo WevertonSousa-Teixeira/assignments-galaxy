@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useClasses, Class } from "@/context/ClassContext";
 import { CustomButton } from "@/components/ui/custom-button";
 import { X } from "lucide-react";
+import { toast } from "sonner";
 
 interface ClassFormProps {
   classItem?: Class;
@@ -58,17 +59,22 @@ const ClassForm = ({ classItem, onClose }: ClassFormProps) => {
     
     setIsSubmitting(true);
     
-    // Simulate API call with timeout
-    setTimeout(() => {
+    try {
       if (classItem) {
         updateClass(classItem.id, formData);
+        toast.success("Turma atualizada com sucesso!");
       } else {
         addClass(formData as Omit<Class, "id" | "createdAt">);
+        toast.success("Turma criada com sucesso!");
       }
       
       setIsSubmitting(false);
       onClose();
-    }, 500);
+    } catch (error) {
+      console.error("Erro ao salvar turma:", error);
+      toast.error("Ocorreu um erro ao salvar a turma");
+      setIsSubmitting(false);
+    }
   };
   
   return (
@@ -137,6 +143,7 @@ const ClassForm = ({ classItem, onClose }: ClassFormProps) => {
           <CustomButton 
             type="submit" 
             isLoading={isSubmitting}
+            disabled={isSubmitting}
           >
             {classItem ? "Atualizar" : "Criar"} Turma
           </CustomButton>
