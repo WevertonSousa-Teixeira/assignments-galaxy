@@ -1,17 +1,20 @@
 
 import { useState, useMemo } from "react";
 import { useTasks, Task } from "@/context/TaskContext";
+import { useClasses } from "@/context/ClassContext";
 import TaskCard from "./TaskCard";
 import { useNavigate } from "react-router-dom";
 import { Search, Filter } from "lucide-react";
 
 const TaskList = () => {
   const { tasks, isLoading } = useTasks();
+  const { classes } = useClasses();
   const navigate = useNavigate();
   
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "completed">("all");
   const [subjectFilter, setSubjectFilter] = useState<string>("all");
+  const [classFilter, setClassFilter] = useState<number | "all">("all");
   
   // Get unique subjects for filter dropdown
   const subjects = useMemo(() => {
@@ -38,9 +41,14 @@ const TaskList = () => {
         subjectFilter === "all" || 
         task.subject === subjectFilter;
       
-      return matchesSearch && matchesStatus && matchesSubject;
+      // Filter by class
+      const matchesClass = 
+        classFilter === "all" || 
+        task.classId === classFilter;
+      
+      return matchesSearch && matchesStatus && matchesSubject && matchesClass;
     });
-  }, [tasks, searchQuery, statusFilter, subjectFilter]);
+  }, [tasks, searchQuery, statusFilter, subjectFilter, classFilter]);
   
   const handleTaskClick = (taskId: number) => {
     navigate(`/task/${taskId}`);
@@ -71,8 +79,8 @@ const TaskList = () => {
           />
         </div>
         
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="relative flex-1">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="relative">
             <Filter className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <select
               className="w-full pl-10 h-10 rounded-lg border bg-background px-3 py-2 text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-primary"
@@ -85,7 +93,7 @@ const TaskList = () => {
             </select>
           </div>
           
-          <div className="relative flex-1">
+          <div className="relative">
             <Filter className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <select
               className="w-full pl-10 h-10 rounded-lg border bg-background px-3 py-2 text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-primary"
@@ -96,6 +104,22 @@ const TaskList = () => {
               {subjects.map((subject) => (
                 <option key={subject} value={subject}>
                   {subject}
+                </option>
+              ))}
+            </select>
+          </div>
+          
+          <div className="relative">
+            <Filter className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <select
+              className="w-full pl-10 h-10 rounded-lg border bg-background px-3 py-2 text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-primary"
+              value={classFilter}
+              onChange={(e) => setClassFilter(e.target.value === "all" ? "all" : parseInt(e.target.value, 10))}
+            >
+              <option value="all">Todas as turmas</option>
+              {classes.map((classItem) => (
+                <option key={classItem.id} value={classItem.id}>
+                  {classItem.name}
                 </option>
               ))}
             </select>
@@ -114,6 +138,7 @@ const TaskList = () => {
               key={task.id} 
               task={task} 
               onClick={() => handleTaskClick(task.id)}
+              className={classes.find(c => c.id === task.classId)?.name || ""}
             />
           ))}
         </div>

@@ -1,17 +1,19 @@
 
 import { useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, Link } from "react-router-dom";
 import { useTasks, Task } from "@/context/TaskContext";
+import { useClasses } from "@/context/ClassContext";
 import { useAuth } from "@/context/AuthContext";
 import Header from "@/components/layout/Header";
 import TaskForm from "@/components/tasks/TaskForm";
 import { CustomButton } from "@/components/ui/custom-button";
 import { motion } from "framer-motion";
-import { Check, Clock, Edit, Plus, Trash2, X } from "lucide-react";
+import { Check, Clock, Edit, Plus, Trash2, X, Users } from "lucide-react";
 
 const Admin = () => {
   const { user, isAuthenticated } = useAuth();
   const { tasks, deleteTask, updateTask } = useTasks();
+  const { classes } = useClasses();
   
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | undefined>(undefined);
@@ -50,6 +52,12 @@ const Admin = () => {
     setSelectedTask(undefined);
   };
   
+  // Find class name for a task
+  const getClassName = (classId: number) => {
+    const classItem = classes.find(c => c.id === classId);
+    return classItem ? classItem.name : "N/A";
+  };
+  
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -71,13 +79,25 @@ const Admin = () => {
               </p>
             </div>
             
-            <CustomButton
-              onClick={() => setIsFormVisible(true)}
-              className="flex items-center gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              Nova Atividade
-            </CustomButton>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Link to="/classes">
+                <CustomButton
+                  variant="outline"
+                  className="flex items-center gap-2 w-full sm:w-auto"
+                >
+                  <Users className="h-4 w-4" />
+                  Gerenciar Turmas
+                </CustomButton>
+              </Link>
+              
+              <CustomButton
+                onClick={() => setIsFormVisible(true)}
+                className="flex items-center gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                Nova Atividade
+              </CustomButton>
+            </div>
           </div>
         </motion.div>
         
@@ -95,6 +115,7 @@ const Admin = () => {
               <thead>
                 <tr className="bg-muted/50">
                   <th className="text-left p-4 font-medium">Título</th>
+                  <th className="text-left p-4 font-medium hidden md:table-cell">Turma</th>
                   <th className="text-left p-4 font-medium hidden md:table-cell">Disciplina</th>
                   <th className="text-left p-4 font-medium hidden md:table-cell">Data de Entrega</th>
                   <th className="text-left p-4 font-medium">Status</th>
@@ -104,7 +125,7 @@ const Admin = () => {
               <tbody className="divide-y">
                 {tasks.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="p-4 text-center text-muted-foreground">
+                    <td colSpan={6} className="p-4 text-center text-muted-foreground">
                       Nenhuma atividade cadastrada.
                     </td>
                   </tr>
@@ -119,6 +140,9 @@ const Admin = () => {
                     >
                       <td className="p-4 max-w-xs">
                         <div className="truncate font-medium">{task.title}</div>
+                      </td>
+                      <td className="p-4 hidden md:table-cell">
+                        {getClassName(task.classId)}
                       </td>
                       <td className="p-4 hidden md:table-cell">{task.subject}</td>
                       <td className="p-4 hidden md:table-cell">

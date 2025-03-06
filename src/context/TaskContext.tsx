@@ -10,6 +10,7 @@ export type Task = {
   dueDate: string;
   createdAt: string;
   status: "pending" | "completed";
+  classId: number; // Nova propriedade para a turma
 };
 
 type TaskContextType = {
@@ -19,6 +20,7 @@ type TaskContextType = {
   updateTask: (id: number, task: Partial<Task>) => void;
   deleteTask: (id: number) => void;
   getTaskById: (id: number) => Task | undefined;
+  getTasksByClassId: (classId: number) => Task[];
 };
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
@@ -33,6 +35,7 @@ const INITIAL_TASKS: Task[] = [
     dueDate: "2023-12-15",
     createdAt: "2023-11-25",
     status: "pending",
+    classId: 1, // 3º Ano A
   },
   {
     id: 2,
@@ -42,6 +45,7 @@ const INITIAL_TASKS: Task[] = [
     dueDate: "2023-12-10",
     createdAt: "2023-11-28",
     status: "pending",
+    classId: 1, // 3º Ano A
   },
   {
     id: 3,
@@ -51,6 +55,7 @@ const INITIAL_TASKS: Task[] = [
     dueDate: "2023-12-18",
     createdAt: "2023-11-30",
     status: "pending",
+    classId: 2, // 7º Ano B
   },
 ];
 
@@ -108,6 +113,10 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return tasks.find((task) => task.id === id);
   };
 
+  const getTasksByClassId = (classId: number) => {
+    return tasks.filter((task) => task.classId === classId);
+  };
+
   return (
     <TaskContext.Provider
       value={{
@@ -117,6 +126,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
         updateTask,
         deleteTask,
         getTaskById,
+        getTasksByClassId,
       }}
     >
       {children}

@@ -1,8 +1,9 @@
 
 import { useState } from "react";
 import { useTasks, Task } from "@/context/TaskContext";
+import { useClasses } from "@/context/ClassContext";
 import { CustomButton } from "@/components/ui/custom-button";
-import { Calendar, Pencil, X } from "lucide-react";
+import { Calendar, X } from "lucide-react";
 
 interface TaskFormProps {
   task?: Task;
@@ -11,6 +12,7 @@ interface TaskFormProps {
 
 const TaskForm = ({ task, onClose }: TaskFormProps) => {
   const { addTask, updateTask } = useTasks();
+  const { classes } = useClasses();
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const [formData, setFormData] = useState({
@@ -19,6 +21,7 @@ const TaskForm = ({ task, onClose }: TaskFormProps) => {
     subject: task?.subject || "",
     dueDate: task?.dueDate || new Date().toISOString().split("T")[0],
     status: task?.status || "pending",
+    classId: task?.classId || (classes.length > 0 ? classes[0].id : 0),
   });
   
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -42,13 +45,20 @@ const TaskForm = ({ task, onClose }: TaskFormProps) => {
       newErrors.dueDate = "A data de entrega é obrigatória";
     }
     
+    if (!formData.classId) {
+      newErrors.classId = "A turma é obrigatória";
+    }
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData(prev => ({ 
+      ...prev, 
+      [name]: name === "classId" ? parseInt(value, 10) : value 
+    }));
     
     // Clear error when field is edited
     if (errors[name]) {
@@ -97,6 +107,34 @@ const TaskForm = ({ task, onClose }: TaskFormProps) => {
       </div>
       
       <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label htmlFor="classId" className="block text-sm font-medium mb-1">
+            Turma
+          </label>
+          <select
+            id="classId"
+            name="classId"
+            value={formData.classId}
+            onChange={handleChange}
+            className={`w-full px-3 py-2 border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary ${
+              errors.classId ? "border-red-500" : "border-input"
+            }`}
+          >
+            {classes.length === 0 ? (
+              <option value="">Nenhuma turma cadastrada</option>
+            ) : (
+              classes.map((classItem) => (
+                <option key={classItem.id} value={classItem.id}>
+                  {classItem.name}
+                </option>
+              ))
+            )}
+          </select>
+          {errors.classId && (
+            <p className="mt-1 text-xs text-red-500">{errors.classId}</p>
+          )}
+        </div>
+        
         <div>
           <label htmlFor="title" className="block text-sm font-medium mb-1">
             Título

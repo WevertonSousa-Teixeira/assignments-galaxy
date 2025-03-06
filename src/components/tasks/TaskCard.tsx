@@ -1,15 +1,16 @@
 
 import { Task } from "@/context/TaskContext";
 import { formatDate } from "@/lib/utils";
-import { CalendarIcon, ClockIcon, BookOpenIcon } from "lucide-react";
+import { CalendarIcon, ClockIcon, BookOpenIcon, UsersIcon } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface TaskCardProps {
   task: Task;
+  className: string;
   onClick?: () => void;
 }
 
-const TaskCard = ({ task, onClick }: TaskCardProps) => {
+const TaskCard = ({ task, className, onClick }: TaskCardProps) => {
   // Calculate if the task is due soon (within 3 days)
   const today = new Date();
   const dueDate = new Date(task.dueDate);
@@ -29,9 +30,14 @@ const TaskCard = ({ task, onClick }: TaskCardProps) => {
     >
       <div className="flex justify-between items-start mb-3">
         <div className="flex flex-col">
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary mb-2 w-fit">
-            {task.subject}
-          </span>
+          <div className="flex gap-2 mb-2">
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+              {task.subject}
+            </span>
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-800/20 dark:text-blue-300">
+              {className}
+            </span>
+          </div>
           <h3 className="text-lg font-semibold line-clamp-1">{task.title}</h3>
         </div>
         
